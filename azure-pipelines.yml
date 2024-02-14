@@ -1,0 +1,43 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.6'
+    addToPath: true
+    architecture: 'x64'
+
+- task: Bash@3
+  inputs:
+    filePath: 'environment_setup/install-requirements.sh'
+    workingDirectory: 'environment_setup'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'Mlops-IRIs'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az extension add -n azure-cli-ml'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'Mlops-IRIs'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az ml workspace create -g $(ml.resourceGroup) -w $(ml.workspace) -l $(ml.region) --exist-ok --yes'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'Mlops-IRIs'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az ml computetarget create amlcompute -g $(mlresourceGroup) -w $(ml.workspace) -n $(ml.computeName) -s $(ml.computeVMSize) --min-nodes $(ml.computeMinNodes) --max-nodes $(ml.computeMaxNodes) --idle-seconds-before-scaledown $(ml.computeIdleSecs)'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'Mlops-IRIs'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az ml datastore upload -w $(ml.workspace) -g $(ml.resourceGroup) -n $(az ml datastore show-default -w $(ml.workspace) -g $(ml.resorceGroup) --query name -o tsv) -p data -u irisdata'
