@@ -60,3 +60,25 @@
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: 'az  ml model register -g $(ml.resourceGroup) -w $(ml.workspace) -n IRIS --asset-path outputs/models/ -d "IRIS Decision Tree Classifier" --tag "model"="Decision Tree" --model-framework Custom -f ./metadata/run.json -t metadata/model.json'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.SourceDirectory)'
+    Contents: |
+      **/metadata/*
+      **/environment_setup/*
+      **/deployment/*
+      **/inference/*
+      **/tests/smoke/*
+      **/outputs/prediction.csv/*
+      **//*
+      **//*
+      **//*
+      **//*
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'iris_classifier'
+    publishLocation: 'pipeline'
